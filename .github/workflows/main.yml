@@ -3,7 +3,7 @@ name: Xummary-Service
 on:
   schedule:
     # 매주 월요일 한국 시간(KST) 오전 7시 실행 (UTC 기준 00:00)
-    - cron: '20 12 * * 5'
+    - cron: '58 12 * * 5'
   workflow_dispatch: # 버튼 눌러서 수동으로도 실행 가능하게 함
 
 jobs:
