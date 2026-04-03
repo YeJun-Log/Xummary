@@ -19,6 +19,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 NOTION_TOKEN = os.getenv("NOTION_TOKEN")
 DATABASE_ID = os.getenv("DATABASE_ID")
 SHEET_ID = os.getenv("SHEET_ID")
+SUBSCRIBER = os.getenv("SUBSCRIBER")
 
 #Client 설정
 genai_client = genai.Client(api_key=GEMINI_API_KEY)
@@ -189,34 +190,22 @@ def create_summary_page(content):
     except Exception as e:
         print(f"Error in Making Page: {e}")
 
-#노션에서 구독자 리스트 뽑기
-def get_receivers_from_notion():
-    db_id = os.getenv("SUBSCRIBER")
+#시트에서 구독자 리스트 뽑기
+def get_receivers_from_sheets():
+    url = f"https://docs.google.com/spreadsheets/d/{SUBSCRIBER}/export?format=csv"
     try:
-        response = notion.databases.query(database_id = db_id)
-        results = response.get("results", [])
-
-        email_list = []
-
-        for page in results:
-            properties = page.get("properties", {})
-
-            email_prop = properties.get("Email", {})
-            email_value = email_prop.get("email")
-
-            if email_value:
-                email_list.append(email_value.strip())
-
-        return email_list
+        df = pd.read_csv(url)
+        data_list = df.iloc[:, 0].dropna().map(str).map(lambda x : x.strip()).tolist()
+        return data_list
     
     except Exception as e:
-        print("Error in Loading Notion DB")
+        print(f"Error in Loading Subscriber DB : {e}")
         return []
 
 #Sending Email to Receivers
 def send_email(summary_text):
 
-    receivers_email = get_receivers_from_notion()
+    receivers_email = get_receivers_from_sheets()
     if not receivers_email:
         return
     html_content = markdown.markdown(summary_text)
@@ -237,8 +226,10 @@ def send_email(summary_text):
 if __name__ == "__main__":
     print("Start")
     tweet_data = get_tweets()
+
     if tweet_data:
-        summary_result = summarize_text(tweet_data)
-        create_summary_page(summary_result)
-        send_email(summary_result)
+       summary_result = summarize_text(tweet_data)
+       create_summary_page(summary_result)
+       send_email(summary_result)
     print("End")
+    
