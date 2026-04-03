@@ -11,7 +11,6 @@ from google.genai import types
 from bs4 import BeautifulSoup
 import smtplib
 from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 import pandas as pd
 
 load_dotenv()
@@ -29,9 +28,8 @@ notion = NotionClient(auth=NOTION_TOKEN)
 smtp_server = "smtp.gmail.com"
 sender_email = os.getenv("SENDER_EMAIL")
 app_password = os.getenv("APP_PASSWORD")
-receivers_email = os.getenv("RECEIVERS_EMAIL")
 
-#ListUp
+# X 작성자 리스트업
 def get_experts_from_sheet():
     url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
 
@@ -191,18 +189,42 @@ def create_summary_page(content):
     except Exception as e:
         print(f"Error in Making Page: {e}")
 
+#노션에서 구독자 리스트 뽑기
+def get_receivers_from_notion():
+    db_id = os.getenv("SUBSCRIBER")
+    try:
+        response = notion.databases.query(database_id = db_id)
+        results = response.get("results", [])
+
+        email_list = []
+
+        for page in results:
+            properties = page.get("properties", {})
+
+            email_prop = properties.get("Email", {})
+            email_value = email_prop.get("email")
+
+            if email_value:
+                email_list.append(email_value.strip())
+
+        return email_list
+    
+    except Exception as e:
+        print("Error in Loading Notion DB")
+        return []
+
 #Sending Email to Receivers
 def send_email(summary_text):
 
+    receivers_email = get_receivers_from_notion()
     if not receivers_email:
         return
-    receiver_email = [r.strip() for r in receivers_email.split(",") if r.strip()]
     html_content = markdown.markdown(summary_text)
     
     try:
         with smtplib.SMTP_SSL(smtp_server, 465) as server:
             server.login(sender_email, app_password)
-            for receiver in receiver_email:
+            for receiver in receivers_email:
                 msg = MIMEText(html_content, 'html')
                 msg['Subject'] = "📊 금주 핵심 요약 보고서"
                 msg['From'] = sender_email

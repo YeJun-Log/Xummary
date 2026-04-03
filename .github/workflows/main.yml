@@ -26,7 +26,6 @@ jobs:
 
       - name: Run Xummary Script
         env:
-          # GitHub Secrets에 등록한 이름과 똑같아야 해!
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           DATABASE_ID: ${{ secrets.DATABASE_ID }}
@@ -34,4 +33,5 @@ jobs:
           APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
           RECEIVER_EMAILS: ${{ secrets.RECEIVERS_EMAIL }}
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          SUBSCRIBER: ${{ secrets.SUBSCRIBER }}
         run: python main.py
