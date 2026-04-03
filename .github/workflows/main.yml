@@ -31,7 +31,6 @@ jobs:
           DATABASE_ID: ${{ secrets.DATABASE_ID }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
           APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
-          RECEIVER_EMAILS: ${{ secrets.RECEIVERS_EMAIL }}
-          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          SHEET_ID: ${{ secrets.SHEET_ID }}
           SUBSCRIBER: ${{ secrets.SUBSCRIBER }}
         run: python main.py
