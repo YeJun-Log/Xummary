@@ -2,9 +2,8 @@ name: Xummary-Service
 
 on:
   schedule:
-    # 21:58 KST 테스트용 (UTC 12:58) -> 현재 시간 근처로 설정함
-    - cron: '01 13 * * 5'
-  workflow_dispatch:
+    - cron: '09 13 * * 5'
+  workflow_dispatch: 
 
 jobs:
   build:
