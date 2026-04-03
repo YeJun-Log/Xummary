@@ -2,7 +2,7 @@ name: Cron-Test
 
 on:
   schedule:
-    - cron: '*/5 * * * *' # 5분마다 실행 (아이콘 확인용)
+    - cron: '58 * * * *' # 5분마다 실행 (아이콘 확인용)
 
 jobs:
   test:
