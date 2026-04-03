@@ -56,7 +56,7 @@ def get_tweets():
         rss_url = f"https://{NITTER_INSTANCE}/{user}/rss"
         feed = feedparser.parse(rss_url)
         print(f"🔍 {user} 수집 중... ({len(feed.entries)}개 발견)")
-        for entry in feed.entries[:4]:
+        for entry in feed.entries[:6]:
             soup = BeautifulSoup(entry.description, "html.parser")
             text_content = soup.get_text().strip()
 
