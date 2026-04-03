@@ -2,9 +2,9 @@ name: Xummary-Service
 
 on:
   schedule:
-    # 매주 월요일 한국 시간(KST) 오전 7시 실행 (UTC 기준 00:00)
-    - cron: '58 12 * * 5'
-  workflow_dispatch: # 버튼 눌러서 수동으로도 실행 가능하게 함
+    # 21:58 KST 테스트용 (UTC 12:58) -> 현재 시간 근처로 설정함
+    - cron: '01 13 * * 5'
+  workflow_dispatch:
 
 jobs:
   build:
