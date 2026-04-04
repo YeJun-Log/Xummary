@@ -45,7 +45,7 @@ def get_experts_from_sheet():
         return []
 
 
-#Get Tweets From X
+# 트윗 긁어오기
 def get_tweets():
     print("Scrapping Tweets...")
     NITTER_INSTANCE = "nitter.net"
@@ -76,7 +76,7 @@ def get_tweets():
     return all_tweet_data
 
 
-#Summarize tweets using GEMINI
+# 트윗 요약 (Using Gemini)
 def summarize_text(tweet_data_list):
     print("Summarizing...")
     instructions = types.Part.from_text(text="""
@@ -124,7 +124,7 @@ def summarize_text(tweet_data_list):
     except Exception as e:
         return f"Error in Summarizing: {e}"
 
-#MarkDown 페이지 변환
+# MarkDown 페이지 변환
 def get_rich_text(text):
     parts = []
     tokens = re.split(r'(\*\*.*?\*\*)', text)
@@ -142,7 +142,7 @@ def get_rich_text(text):
 
     return parts
 
-#Making Notion Page
+# 노션 페이지 제작
 def create_summary_page(content):
     try:
         today = datetime.date.today().strftime("%Y-%m-%d")
@@ -193,7 +193,7 @@ def create_summary_page(content):
     except Exception as e:
         print(f"Error in Making Page: {e}")
 
-#시트에서 구독자 리스트 뽑기
+# 시트에서 구독자 리스트 뽑기
 def get_receivers_from_sheets():
     url = f"https://docs.google.com/spreadsheets/d/{SUBSCRIBER}/export?format=csv"
     try:
@@ -205,7 +205,7 @@ def get_receivers_from_sheets():
         print(f"Error in Loading Subscriber DB : {e}")
         return []
 
-#Sending Email to Receivers
+# 이메일 전송
 def send_email(summary_text):
 
     receivers_email = get_receivers_from_sheets()
@@ -226,6 +226,8 @@ def send_email(summary_text):
     except Exception as e:
         print(f"Error in Sending Mail: {e}")
 
+
+# 메인 함수
 if __name__ == "__main__":
     print("Start")
     tweet_data = get_tweets()
