@@ -56,7 +56,7 @@ def get_tweets():
         rss_url = f"https://{NITTER_INSTANCE}/{user}/rss"
         feed = feedparser.parse(rss_url)
         print(f"🔍 {user} 수집 중... ({len(feed.entries)}개 발견)")
-        for entry in feed.entries[:6]:
+        for entry in feed.entries[:5]: # 최신 순으로 인당 5개 추출해서 요약
             soup = BeautifulSoup(entry.description, "html.parser")
             text_content = soup.get_text().strip()
 
@@ -80,12 +80,12 @@ def get_tweets():
 def summarize_text(tweet_data_list):
     print("Summarizing...")
     instructions = types.Part.from_text(text="""
-    너는 경제 및 정치 분야의 전문 정보 분석관이야. 
+    너는 경제 및 정치 분야의 국제 정세 전문 정보 분석관이야. 
     제공된 트윗 텍스트와 첨부된 이미지들을 분석해서 전문가 수준의 '인텔리전스 보고서'를 작성해줘.
 
     [분석 지침]
     1. 주요 이슈(Headline)를 선정해서 알려줘.
-    2. 시각적 분석(Visual Insights): 첨부된 이미지가 '차트'라면 수치를 해석하고, '현장 사진'이라면 상황을 텍스트와 연결해 분석해줘. (이미지가 없다면 이 항목은 제외)
+    2. 시각적 분석(Visual Insights): 첨부된 이미지가 '차트'라면 수치를 해석하고, '현장 사진'이라면 상황을 텍스트와 연결해 분석해줘. '지도'라면 해당 내용을 국제 정세와 연결해서 잘 설명해줘. (이미지가 없다면 이 항목은 제외)
     3. 대립 의견(Dissenting Voices): 전문가들 사이에서 의견이 갈리는 맥락이 있다면, 반드시 포착해줘.
     4. 향후 전망: 이 정보들이 향후 시장이나 정책에 줄 영향과 주의할 리스크를 정리해줘.
     5. 해당 트윗의 분야 (정치, 경제 등)에 따라 상세하게 분석해서 알려줘.
@@ -93,8 +93,8 @@ def summarize_text(tweet_data_list):
     [출력 형식]
     - 작성자, 분석관 이름은 'Gemini' 로 할 것.
     - 누구나 쉽게 알아들을 수 있도록, 쉬운 말로 풀어서 설명할 것. 가능하면 예시를 적극 활용할 것.
-    - 한국어로 작성하고, 중요한 단어는 [](대괄호) 사용.
-    - 요약 시, 누가 작성한 글인지 간략한 출처 남기기.
+    - 모든 답변은 한국어로 작성하고, 중요한 단어는 [](대괄호) 사용.
+    - 요약 시, 누가 작성한 글인지 간략한 출처를 남길 것. 거짓말을 하지 않을 것.
     - 마지막에 '오늘의 한 줄 인사이트' 남기기.
     """)
 
@@ -199,7 +199,7 @@ def get_receivers_from_sheets():
     url = f"https://docs.google.com/spreadsheets/d/{SUBSCRIBER}/export?format=csv"
     try:
         df = pd.read_csv(url)
-        data_list = df.iloc[:, 0].dropna().map(str).map(lambda x : x.strip()).tolist()
+        data_list = df.iloc[:, 0].dropna().map(str).map(lambda x : x.strip()).tolist() # 0 : 전체 구독자 / 2 : 테스트 구독자
         return data_list
     
     except Exception as e:
@@ -214,16 +214,19 @@ def send_email(summary_text):
         return
     html_content = markdown.markdown(summary_text)
     
+    num = 0
+
     try:
         with smtplib.SMTP_SSL(smtp_server, 465) as server:
             server.login(sender_email, app_password)
             for receiver in receivers_email:
                 msg = MIMEText(html_content, 'html')
-                msg['Subject'] = "📊 국제 정세 핵심 요약 보고서"
+                msg['Subject'] = "📊 국제 정세 트윗 핵심 요약 보고서"
                 msg['From'] = sender_email
                 msg['To'] = receiver
                 server.sendmail(sender_email, receiver, msg.as_string())
-        print("Complete Sending Mail")
+                num += 1
+        print(f"Complete Sending Mail : {num}")
     except Exception as e:
         print(f"Error in Sending Mail: {e}")
 
