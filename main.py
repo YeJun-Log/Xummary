@@ -210,6 +210,8 @@ def get_receivers_from_sheets():
 # 이메일 전송
 def send_email(summary_text):
 
+    today = datetime.date.today().strftime("%Y/%m/%d")
+
     receivers_email = get_receivers_from_sheets()
     if not receivers_email:
         return
@@ -222,7 +224,7 @@ def send_email(summary_text):
             server.login(sender_email, app_password)
             for receiver in receivers_email:
                 msg = MIMEText(html_content, 'html')
-                msg['Subject'] = "📊 국제 정세 트윗 핵심 요약 보고서"
+                msg['Subject'] = f"📊 {today} 국제 정세 트윗 핵심 요약 보고서"
                 msg['From'] = sender_email
                 msg['To'] = receiver
                 server.sendmail(sender_email, receiver, msg.as_string())
