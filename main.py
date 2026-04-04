@@ -219,7 +219,7 @@ def send_email(summary_text):
             server.login(sender_email, app_password)
             for receiver in receivers_email:
                 msg = MIMEText(html_content, 'html')
-                msg['Subject'] = "📊 금주 핵심 요약 보고서"
+                msg['Subject'] = "📊 국제 정세 핵심 요약 보고서"
                 msg['From'] = sender_email
                 msg['To'] = receiver
                 server.sendmail(sender_email, receiver, msg.as_string())
