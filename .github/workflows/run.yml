@@ -3,7 +3,7 @@ name: run
 # 실행 조건 설정
 on:
   schedule:
-    - cron: '11 21 * * *'
+    - cron: '11 21 * * 1'
   
   # 깃허브 웹에서 수동으로 즉시 실행할 수 있는 버튼 활성화
   workflow_dispatch:
