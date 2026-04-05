@@ -246,6 +246,6 @@ if __name__ == "__main__":
     if tweet_data:
        summary_result = summarize_text(tweet_data)
        create_summary_page(summary_result)
-       send_email(summary_result, test)
+       send_email(summary_result, real)
     print("End")
     
