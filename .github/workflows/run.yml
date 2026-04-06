@@ -34,8 +34,6 @@ jobs:
         env:
           # 레포지토리 Settings > Secrets 에 등록한 변수들을 불러옴
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-          DATABASE_ID: ${{ secrets.DATABASE_ID }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
           APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
           SHEET_ID: ${{ secrets.SHEET_ID }}
