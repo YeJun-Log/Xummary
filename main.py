@@ -1,4 +1,5 @@
 import os
+import time
 import markdown
 import datetime
 import requests
@@ -123,12 +124,11 @@ def summarize_text(tweet_data_list):
     - 작성자의 주장에 동의/비동의 여부를 검토하고, 어떤 전제 위에서 성립하는지도 설명할 것.
     - 작성자의 논리적 허점이나 현재의 환경(금리, 물가 등)과의 충돌 지점도 찾아내서 알려줄 것.
 
-    게시물을 모두 분석한 후 지금 시점에서 투자자가 취할 수 있는 행동과
-    투자 포트폴리오 비중 확대/축소 아이디어를 제시해줘.
+    게시물을 모두 분석한 후 지금 시점에서 투자자가 취하면 좋을 행동도 알려줘.
     
     각 분석 결과의 마지막에는, 해당 분석 대상의 ID와 일치하는 '원본링크'를 수정 없이 토씨 하나 틀리지 않고 그대로 복사하여 첨부해. 
     원본링크가 오류 없이 잘 첨부되었는지 다시 한번 검토 후 답변해.
-    절대 스스로 URL을 생성하거나 수정하지 마. 만약 특정 게시물의 링크를 확신할 수 없다면 링크를 남기지 마.
+    절대 스스로 URL을 생성하거나 수정하지 마. 만약 특정 게시물의 링크를 확신할 수 없다면, 링크를 남기지 마.
     전문 투자자가 읽는 보고서이므로, 톤앤매너는 진중하게 유지해 줘.
     답변 시 ID는 첨부하지마.
     작성자 및 분석관 이름은 'YJUN'로 해줘.
@@ -154,10 +154,12 @@ def summarize_text(tweet_data_list):
                 print(f"Error in Downloading Image")
     try:
         common_response = genai_client.models.generate_content(
-            model='gemini-flash-latest', 
+            model='gemini-3-flash-preview', 
             contents=[types.Content(role="user", parts=contents)]
         )
         common_report = common_response.text
+
+        time.sleep(10)
 
         print("Complete Summarizing, Start Making Portfolio")
 
@@ -165,6 +167,12 @@ def summarize_text(tweet_data_list):
         너는 개인 투자 수석 분석관이야. 
         아래의 [주간 시장 인사이트 리포트]를 읽고, [현재 포트폴리오]에 맞춘 
         구체적인 리밸런싱 아이디어를 제안해 줘.
+        구체적 수치는 반드시 마크다운 표 형식을 지켜서 작성한 후 제시해줘.
+        표의 열은 [자산명, 현재 비중, 목표 비중, 변동, 핵심 행동]으로 제한해.
+        **[주의]** 표의 각 셀(Cell)에는 문장이 아닌 '단어'나 '짧은 구' 위주로 작성하여 표가 옆으로 깨지지 않게 할 것.
+        상세한 이유나 설명은 표 아래에 불렛포인트로 따로 뺄 것.
+        표의 구분선(|---|---|)을 반드시 포함하여 마크다운 규격을 준수할 것.
+
         [주간 시장 인사이트 리포트]
         {common_report}
         
@@ -180,21 +188,18 @@ def summarize_text(tweet_data_list):
         - 절대 거짓말을 하지 않을 것.
         """
         boss_reponse = genai_client.models.generate_content(
-            model='gemini-flash-latest',
+            model='gemini-3-flash-preview',
             contents=pro_prompt
         )
         boss_analysis = boss_reponse.text
         print("Complete Portfolio Making")
         return {
             "common": common_report,
-            "boss": "[포트폴리오 전략]" + boss_analysis + "\n\n" + "==" * 20 + "\n\n" + common_report
+            "boss": "[포트폴리오 전략] \n\n" + boss_analysis + "\n\n" + "==" * 20 + "\n\n" + common_report
         }
     except Exception as e:
         print (f"Error in Summarizing: {e}")
-        return {
-            "common": f"요약 중 에러가 발생했습니다: {e}",
-            "boss": f"실장님, 보고서 생성 중 에러가 발생했습니다: {e}"
-        }
+        return None
 
 
 
@@ -218,7 +223,7 @@ def send_email(summary_dict, who):
     today = datetime.date.today().strftime("%Y/%m/%d")
     receivers_email = get_receivers_from_sheets(who)
 
-    BOSS_EMAIL = os.getenv("BOSS_EMAIL")
+    BOSS_EMAIL = os.getenv("SENDER_EMAIL")
 
     if not receivers_email:
         return
@@ -235,7 +240,7 @@ def send_email(summary_dict, who):
                     content = summary_dict["common"]
                     subject = f"📊 {today} 경제 추세 핵심 보고서"
 
-                html_content = markdown.markdown(content)
+                html_content = markdown.markdown(content, extensions=['tables'])
                 msg = MIMEText(html_content, 'html')
                 msg['Subject'] = subject
                 msg['From'] = sender_email
@@ -259,7 +264,11 @@ if __name__ == "__main__":
     test = 3  #테스트용
 
     if tweet_data:
-       summary_result = summarize_text(tweet_data)
-       send_email(summary_result, test)
+        summary_result = summarize_text(tweet_data)
+        if summary_result:
+            send_email(summary_result, test)
+        else:
+            print("Error, Don't send email...")           
+
     print("End")
     
