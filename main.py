@@ -1,16 +1,15 @@
 import os
 import markdown
-from dotenv import load_dotenv
 import datetime
 import requests
+import smtplib
 import feedparser
+import pandas as pd
+from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from bs4 import BeautifulSoup
-import smtplib
 from email.mime.text import MIMEText
-import pandas as pd
-
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -130,7 +129,6 @@ def get_receivers_from_sheets(who):
         df = pd.read_csv(url)
         data_list = df.iloc[:, who].dropna().map(str).map(lambda x : x.strip()).tolist() 
         return data_list
-    
     except Exception as e:
         print(f"Error in Loading Subscriber DB : {e}")
         return []
@@ -140,7 +138,6 @@ def get_receivers_from_sheets(who):
 
 # 이메일 전송
 def send_email(summary_text, who):
-
     today = datetime.date.today().strftime("%Y/%m/%d")
     receivers_email = get_receivers_from_sheets(who)
     if not receivers_email:
