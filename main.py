@@ -1,11 +1,9 @@
 import os
 import markdown
-import re
 from dotenv import load_dotenv
 import datetime
 import requests
 import feedparser
-from notion_client import Client as NotionClient
 from google import genai
 from google.genai import types
 from bs4 import BeautifulSoup
@@ -16,19 +14,18 @@ import pandas as pd
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-NOTION_TOKEN = os.getenv("NOTION_TOKEN")
-DATABASE_ID = os.getenv("DATABASE_ID")
 SHEET_ID = os.getenv("SHEET_ID")
 SUBSCRIBER = os.getenv("SUBSCRIBER")
 
 #Client 설정
 genai_client = genai.Client(api_key=GEMINI_API_KEY)
-notion = NotionClient(auth=NOTION_TOKEN)
 
 #Email 설정
 smtp_server = "smtp.gmail.com"
 sender_email = os.getenv("SENDER_EMAIL")
 app_password = os.getenv("APP_PASSWORD")
+
+
 
 # X 작성자 리스트업
 def get_experts_from_sheet():
@@ -126,73 +123,6 @@ def summarize_text(tweet_data_list):
 
 
 
-# MarkDown 페이지 변환
-def get_rich_text(text):
-    parts = []
-    tokens = re.split(r'(\*\*.*?\*\*)', text)
-    for token in tokens:
-        if token.startswith('**') and token.endswith('**'):
-            content = token.replace('**', '')
-            parts.append({
-                "type" : "text",
-                "text" : {"content" : content},
-                "annotations" : {"bold" : True, "color" : "blue_background"}
-            })
-        else:
-            if token:
-                parts.append({"type" : "text", "text" : {"content" : token}})
-
-    return parts
-
-
-
-# 노션 페이지 제작
-def create_summary_page(content):
-    try:
-        today = datetime.date.today().strftime("%Y-%m-%d")
-        lines = content.split('\n')
-        blocks = []
-        for line in lines:
-            line = line.strip()
-            if not line: continue
-            if line.startswith('###'):
-                blocks.append({
-                    "object": "block", "type": "heading_2",
-                    "heading_2": {"rich_text": [{"text": {"content": line.replace('###', '').strip()}}]}
-                })
-                blocks.append({"object": "block", "type": "divider", "divider": {}})
-            elif "인사이트" in line:
-                blocks.append({
-                    "object": "block", "type": "callout",
-                    "callout": {
-                        "rich_text": get_rich_text(line),
-                        "icon": {"emoji": "💡"},
-                        "color": "blue_background"
-                    }
-                })
-            elif line.startswith('*') or line.startswith('-'):
-                blocks.append({
-                    "object": "block", "type": "bulleted_list_item",
-                    "bulleted_list_item": {"rich_text": get_rich_text(line.strip('* -'))}
-                })
-            else:
-                blocks.append({
-                    "object": "block", "type": "paragraph",
-                    "paragraph": {"rich_text": get_rich_text(line)}
-                })
-        notion.pages.create(
-            parent={"database_id": DATABASE_ID},
-            properties={
-                "이름": { "title": [{"text": {"content": f"{today} X 경제/정치 인텔리전스"}}] }
-            },
-            children=blocks[:100]
-        )
-        print("Page Making Complete")
-    except Exception as e:
-        print(f"Error in Making Page: {e}")
-
-
-
 # 시트에서 구독자 리스트 뽑기
 def get_receivers_from_sheets(who):
     url = f"https://docs.google.com/spreadsheets/d/{SUBSCRIBER}/export?format=csv"
@@ -245,7 +175,6 @@ if __name__ == "__main__":
 
     if tweet_data:
        summary_result = summarize_text(tweet_data)
-       create_summary_page(summary_result)
        send_email(summary_result, real)
     print("End")
     
