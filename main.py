@@ -158,7 +158,7 @@ def summarize_text(tweet_data_list):
                 print(f"Error in Downloading Image")
     try:
         common_response = genai_client.models.generate_content(
-            model='gemini-3.1-flash-lite-preview', 
+            model='gemini-flash-latest', 
             contents=[types.Content(role="user", parts=contents)]
         )
         common_report = common_response.text
