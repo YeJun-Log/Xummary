@@ -6,11 +6,13 @@ import requests
 import smtplib
 import feedparser
 import pandas as pd
+import google.api_core.exceptions
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from bs4 import BeautifulSoup
 from email.mime.text import MIMEText
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -104,6 +106,20 @@ def portfolio():
         return "포트폴리오 데이터를 불러올 수 없습니다."
 
 
+@retry(
+    retry=retry_if_exception_type((
+        google.api_core.exceptions.InternalServerError,
+        google.api_core.exceptions.ResourceExhausted,
+        google.api_core.exceptions.ServiceUnavailable
+    )),
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=2, min=10, max=120),
+    before_sleep=lambda retry_state: print(f"Error caused by GEMINI : {retry_state.next_action.sleep: .1f}초 후 재시도...({retry_state.attempt_number}회차)")
+)
+def safe_generate_content(model_name, contents):
+    return genai_client.models.generate_content(model=model_name, contents=contents)
+
+
 # 트윗 요약 (Using Gemini)
 def summarize_text(tweet_data_list):
     print("Summarizing...")
@@ -157,15 +173,15 @@ def summarize_text(tweet_data_list):
             except Exception as e:
                 print(f"Error in Downloading Image")
     try:
-        common_response = genai_client.models.generate_content(
-            model='gemini-flash-latest', 
-            contents=[types.Content(role="user", parts=contents)]
+        common_response = safe_generate_content(
+            'gemini-flash-latest', 
+            [types.Content(role="user", parts=contents)]
         )
         common_report = common_response.text
 
-        print("Complete 1st summarizing. Wait for 10 seconds")
+        print("Complete 1st summarizing. Wait for 1 minutes")
 
-        time.sleep(10)
+        time.sleep(60)
 
         print("Start Making Portfolio")
 
@@ -193,9 +209,9 @@ def summarize_text(tweet_data_list):
         - 해당 내용이 정확한지 답변 생성 전 다시 검토할 것.
         - 절대 거짓말을 하지 않을 것.
         """
-        boss_reponse = genai_client.models.generate_content(
-            model='gemini-3-flash-preview',
-            contents=pro_prompt
+        boss_reponse = safe_generate_content(
+            'gemini-flash-latest',
+            pro_prompt
         )
         boss_analysis = boss_reponse.text
         print("Complete Portfolio Making")
