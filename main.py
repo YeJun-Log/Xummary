@@ -42,12 +42,10 @@ def get_experts_from_sheet():
         return []
 
 
-
-
 # 트윗 긁어오기
 def get_tweets():
     print("Scrapping Tweets...")
-    NITTER_INSTANCE = "nitter.net"
+    NITTER_INSTANCE = "xcancel.com"
     all_tweet_data = []
 
     Experts = get_experts_from_sheet()
@@ -61,7 +59,7 @@ def get_tweets():
 
         for entry in feed.entries[:5]: # 최신 순으로 인당 5개 추출해서 요약
             raw_link = entry.link
-            x_link = raw_link.replace("nitter.net", "x.com")
+            x_link = raw_link.replace("xcancel.com", "x.com")
             soup = BeautifulSoup(entry.description, "html.parser")
             text_content = soup.get_text().strip()
 
@@ -162,7 +160,7 @@ def summarize_text(tweet_data_list):
         )
         if data['image_url']:
             try:
-                img_response = requests.get(data['image_url'], timeout=5)
+                img_response = requests.get(data['image_url'], timeout=20)
                 if img_response.status_code == 200:
                     contents.append(
                         types.Part.from_bytes(
@@ -171,10 +169,10 @@ def summarize_text(tweet_data_list):
                         )
                     )
             except Exception as e:
-                print(f"Error in Downloading Image")
+                print(f"Error in Downloading Image : {e}")
     try:
         common_response = safe_generate_content(
-            'gemini-flash-latest', 
+            'gemini-3.1-flash-lite-preview', 
             [types.Content(role="user", parts=contents)]
         )
         common_report = common_response.text
