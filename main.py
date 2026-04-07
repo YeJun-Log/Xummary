@@ -6,10 +6,9 @@ import requests
 import smtplib
 import feedparser
 import pandas as pd
-import google.api_core.exceptions
 from dotenv import load_dotenv
 from google import genai
-from google.genai import types
+from google.genai import types, errors
 from bs4 import BeautifulSoup
 from email.mime.text import MIMEText
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
@@ -45,7 +44,7 @@ def get_experts_from_sheet():
 # 트윗 긁어오기
 def get_tweets():
     print("Scrapping Tweets...")
-    NITTER_INSTANCE = "xcancel.com"
+    NITTER_INSTANCE = "nitter.net"
     all_tweet_data = []
 
     Experts = get_experts_from_sheet()
@@ -59,7 +58,7 @@ def get_tweets():
 
         for entry in feed.entries[:5]: # 최신 순으로 인당 5개 추출해서 요약
             raw_link = entry.link
-            x_link = raw_link.replace("xcancel.com", "x.com")
+            x_link = raw_link.replace("nitter.net", "x.com")
             soup = BeautifulSoup(entry.description, "html.parser")
             text_content = soup.get_text().strip()
 
@@ -106,9 +105,7 @@ def portfolio():
 
 @retry(
     retry=retry_if_exception_type((
-        google.api_core.exceptions.InternalServerError,
-        google.api_core.exceptions.ResourceExhausted,
-        google.api_core.exceptions.ServiceUnavailable
+        retry_if_exception_type(Exception)
     )),
     stop=stop_after_attempt(5),
     wait=wait_exponential(multiplier=2, min=10, max=120),
@@ -172,7 +169,7 @@ def summarize_text(tweet_data_list):
                 print(f"Error in Downloading Image : {e}")
     try:
         common_response = safe_generate_content(
-            'gemini-3.1-flash-lite-preview', 
+            'gemini-3-flash-preview', 
             [types.Content(role="user", parts=contents)]
         )
         common_report = common_response.text
@@ -208,7 +205,7 @@ def summarize_text(tweet_data_list):
         - 절대 거짓말을 하지 않을 것.
         """
         boss_reponse = safe_generate_content(
-            'gemini-flash-latest',
+            'gemini-3-flash-preview',
             pro_prompt
         )
         boss_analysis = boss_reponse.text
