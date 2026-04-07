@@ -244,7 +244,7 @@ def send_email(summary_dict, who):
     today = datetime.date.today().strftime("%Y/%m/%d")
     receivers_email = get_receivers_from_sheets(who)
 
-    BOSS_EMAIL = os.getenv("SENDER_EMAIL")
+    BOSS_EMAIL = os.getenv("BOSS_EMAIL")
 
     if not receivers_email:
         return
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     if tweet_data:
         summary_result = summarize_text(tweet_data)
         if summary_result:
-            send_email(summary_result, test)
+            send_email(summary_result, real)
         else:
             print("Error, Don't send email...")           
 
