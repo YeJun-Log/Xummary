@@ -254,7 +254,7 @@ def send_email(summary_dict, who):
         with smtplib.SMTP_SSL(smtp_server, 465) as server:
             server.login(sender_email, app_password)
             for receiver in receivers_email:
-                if receiver == BOSS_EMAIL:
+                if (receiver == BOSS_EMAIL) or (receiver == sender_email):
                     content = summary_dict["boss"]
                     subject = f"{today} [VIP 전용] 맞춤형 투자 리포트"
                 else:
