@@ -6,6 +6,7 @@ import requests
 import smtplib
 import feedparser
 import pandas as pd
+import google.api_core.exceptions
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types, errors
@@ -105,11 +106,14 @@ def portfolio():
 
 @retry(
     retry=retry_if_exception_type((
-        retry_if_exception_type(Exception)
+        errors.APIError,  
+        google.api_core.exceptions.InternalServerError,
+        google.api_core.exceptions.ServiceUnavailable,
+        google.api_core.exceptions.ResourceExhausted
     )),
-    stop=stop_after_attempt(5),
-    wait=wait_exponential(multiplier=2, min=10, max=120),
-    before_sleep=lambda retry_state: print(f"Error caused by GEMINI : {retry_state.next_action.sleep: .1f}초 후 재시도...({retry_state.attempt_number}회차)")
+    stop=stop_after_attempt(7), 
+    wait=wait_exponential(multiplier=2, min=15, max=180), # 15초부터 2배씩 늘려가며 대기
+    before_sleep=lambda retry_state: print(f"⚠️ GEMINI 응답 지연(503/429): {retry_state.next_action.sleep:.1f}초 후 다시 시도...({retry_state.attempt_number}회차)")
 )
 def safe_generate_content(model_name, contents):
     return genai_client.models.generate_content(model=model_name, contents=contents)
