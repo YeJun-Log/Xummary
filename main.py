@@ -250,6 +250,7 @@ def send_email(summary_dict, who):
         return
     
     num = 0
+    vip = 0
     try:
         with smtplib.SMTP_SSL(smtp_server, 465) as server:
             server.login(sender_email, app_password)
@@ -257,9 +258,11 @@ def send_email(summary_dict, who):
                 if (receiver == BOSS_EMAIL) or (receiver == sender_email):
                     content = summary_dict["boss"]
                     subject = f"{today} [VIP 전용] 맞춤형 투자 리포트"
+                    vip += 1
                 else:
                     content = summary_dict["common"]
                     subject = f"📊 {today} 경제 추세 핵심 보고서"
+                    num += 1
 
                 html_content = markdown.markdown(content, extensions=['tables'])
                 msg = MIMEText(html_content, 'html')
@@ -267,8 +270,8 @@ def send_email(summary_dict, who):
                 msg['From'] = sender_email
                 msg['To'] = receiver
                 server.sendmail(sender_email, receiver, msg.as_string())
-                num += 1
-        print(f"Complete Sending Mail : {num}")
+
+        print(f"Complete Sending Mail : {num}, {vip}")
     except Exception as e:
         print(f"Error in Sending Mail: {e}")
 
