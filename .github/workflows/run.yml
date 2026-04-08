@@ -36,6 +36,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
           APP_PASSWORD: ${{ secrets.APP_PASSWORD }}
+          BOSS_EMAIL: ${{ secrets.BOSS_EMAIL }}
           SHEET_ID: ${{ secrets.SHEET_ID }}
           SUBSCRIBER: ${{ secrets.SUBSCRIBER }}
         run: python main.py
