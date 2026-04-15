@@ -173,7 +173,7 @@ def summarize_text(tweet_data_list):
                 print(f"Error in Downloading Image : {e}")
     try:
         common_response = safe_generate_content(
-            'gemini-flash-lite-latest', 
+            'gemini-flash-latest', 
             [types.Content(role="user", parts=contents)]
         )
         common_report = common_response.text
