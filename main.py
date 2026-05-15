@@ -209,7 +209,7 @@ def summarize_text(tweet_data_list):
         - 절대 거짓말을 하지 않을 것.
         """
         boss_reponse = safe_generate_content(
-            'gemini-3-flash-preview',
+            'gemini-3.1-flash-lite-preview',
             pro_prompt
         )
         boss_analysis = boss_reponse.text
