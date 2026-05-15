@@ -109,7 +109,8 @@ def portfolio():
         errors.APIError,  
         google.api_core.exceptions.InternalServerError,
         google.api_core.exceptions.ServiceUnavailable,
-        google.api_core.exceptions.ResourceExhausted
+        google.api_core.exceptions.ResourceExhausted,
+        google.api_core.exceptions.DeadlineExceeded
     )),
     stop=stop_after_attempt(10), 
     wait=wait_exponential(multiplier=2, min=15, max=240), # 15초부터 2배씩 늘려가며 대기
