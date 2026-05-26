@@ -2,7 +2,7 @@ import logging
 
 import pandas as pd
 
-from config import SHEET_ID, SUBSCRIBER
+from config import SHEET_ID, SUBSCRIBER, PORTFOLIO_GID
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ def get_experts_from_sheet():
 
 
 def portfolio():
-    df = _read_sheet(SHEET_ID, gid=1238179773, label="portfolio")
+    df = _read_sheet(SHEET_ID, gid=PORTFOLIO_GID, label="portfolio")
     if df is None:
         return "포트폴리오 데이터를 불러올 수 없습니다."
 
@@ -39,6 +39,9 @@ def portfolio():
         # 유의미한 데이터가 있는 행만 처리
         if len(row_data) > 0:
             portfolio_lines.append(f"- {' | '.join(row_data)}")
+
+    if not portfolio_lines:
+        logger.warning("Portfolio sheet loaded but contains no usable rows; Gemini will receive empty portfolio")
 
     # 전체를 하나의 문자열로 합쳐서 반환
     return "\n".join(portfolio_lines)

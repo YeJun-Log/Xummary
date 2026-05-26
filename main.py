@@ -1,5 +1,6 @@
 import logging
 
+from config import SUBSCRIBER_COL_PROD, SUBSCRIBER_COL_TEST
 from scraper import get_tweets
 from summarizer import summarize_text
 from mailer import send_email
@@ -23,13 +24,10 @@ if __name__ == "__main__":
     logger.info("Start")
     tweet_data = get_tweets()
 
-    real = 0  #전체 구독자
-    test = 3  #테스트용
-
     if tweet_data:
         summary_result = summarize_text(tweet_data)
         if summary_result:
-            send_email(summary_result, test)
+            send_email(summary_result, SUBSCRIBER_COL_PROD)
         else:
             logger.error("Skipping email send because summarization failed")
 
